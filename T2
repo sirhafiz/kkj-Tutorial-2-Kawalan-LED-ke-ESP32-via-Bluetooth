@@ -1,0 +1,56 @@
+#include <BluetoothSerial.h>
+
+// Definisikan pin untuk LED
+#define LED2 12 // GPIO 12 untuk LED 2
+#define LED3 14 // GPIO 14 untuk LED 3
+#define BLINK_DELAY 500 // Masa kelip (ms)
+
+// Inisialisasi Bluetooth Serial
+BluetoothSerial SerialBT;
+
+void setup() {
+  // Inisialisasi pin LED sebagai output
+  pinMode(LED2, OUTPUT);
+  pinMode(LED3, OUTPUT);
+  
+  // Matikan semua LED saat startup
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  
+  // Inisialisasi Bluetooth dengan nama perangkat
+  SerialBT.begin("ESP32_LED_Control"); // Nama Bluetooth perangkat
+  Serial.begin(115200); // Untuk debugging
+  Serial.println("Bluetooth siap, sambungkan ke ESP32_LED_Control");
+}
+
+void loop() {
+  static bool ledState = false; // Status LED (hidup/mati)
+  
+  // Periksa jika ada data Bluetooth masuk
+  if (SerialBT.available()) {
+    char command = SerialBT.read();
+    
+    // Perintah '1' untuk menghidupkan LED (berkelip)
+    if (command == '1') {
+      ledState = true;
+      SerialBT.println("LED ON (Berkelip)");
+    }
+    // Perintah '0' untuk mematikan LED
+    else if (command == '0') {
+      ledState = false;
+      digitalWrite(LED2, LOW);
+      digitalWrite(LED3, LOW);
+      SerialBT.println("LED OFF");
+    }
+  }
+  
+  // Jika LED dalam keadaan ON, lakukan kelip
+  if (ledState) {
+    digitalWrite(LED2, HIGH);
+    digitalWrite(LED3, HIGH);
+    delay(BLINK_DELAY);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, LOW);
+    delay(BLINK_DELAY);
+  }
+}
